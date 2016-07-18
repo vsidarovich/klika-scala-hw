@@ -3,8 +3,9 @@
   */
 object Loop {
   def whileLoop(condition: => Boolean)(callback: => Unit) {
-    while (condition) {
+    if (condition) {
       callback
+      whileLoop(condition)(callback)
     }
   }
 }
