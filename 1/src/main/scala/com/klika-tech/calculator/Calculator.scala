@@ -9,48 +9,36 @@ class Calculator(val input: ParserInput) extends Parser {
   def Expression: Rule1[D] = {
     rule {Term ~ zeroOrMore(
       '+' ~ Term ~> ((_: D) + _)
-          |
-      '-' ~ Term ~> ((_: D) - _))
+        |
+        '-' ~ Term ~> ((_: D) - _))
     }
   }
 
   def Term = {rule {Factor ~ zeroOrMore('*' ~ Factor ~> ((_: D) * _)
-          |
-      '/' ~ Factor ~> ((_: D) / _))
-    }
+                                          |
+                                          '/' ~ Factor ~> ((_: D) / _))
+  }
   }
 
-  def Factor = rule {DoubleNumber | Parens | IntNumber}
+  def Factor = rule {Number | Parens}
 
   def Parens = rule {'(' ~ Expression ~ ')'}
 
-  //transform Double digits to double
-  def IntNumber = rule {capture(Digits) ~> (x=>D(x.toDouble))}
-
   //transform digits to numbers
-  def DoubleNumber = rule {capture(DoubleDigits) ~> (x=>D(x.toDouble))}
+  def Number = rule {capture(NumericDigits) ~> (x => D(x.toDouble))}
 
-  //capture Integer digits from text
-  def Digits = rule {oneOrMore(CharDigit)}
+  //capture digits from text
+  def Digit = rule {oneOrMore(CharPredicate.Digit)}
 
-  //capture Double digits from text
-  def DoubleDigits = rule {oneOrMore(CharDigit) ~ ('.') ~ oneOrMore(CharDigit)}
+  //capture Double/Integer digits from text
+  def NumericDigits = rule {WhiteSpace ~ (oneOrMore(Digit ~ ('.') ~ Digit) | Digit) ~ WhiteSpace}
 
-  def CharDigit=rule {CharPredicate.Digit}
+  //capture whitespaces
+  def WhiteSpace = rule{zeroOrMore(" ")}
+
 }
 
 object CalculatorRunner extends App {
-
-  object Calculator {
-    def apply(input: String) = {
-      val replaced = input.replace(" ", "")
-      println(replaced)
-      new Calculator(replaced)
-    }
-  }
-
-  println(Calculator.apply("2 + 1.2").InputLine.run()) // evaluates to `scala.util.Success(2)`
+  println(new Calculator("2.4 +         1.222").InputLine.run())
+  println(new Calculator("(2 + 5*2)/6").InputLine.run())
 }
-
-
-
